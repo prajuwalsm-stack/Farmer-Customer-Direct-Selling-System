@@ -1,0 +1,7 @@
+package com.farmdirect.controller;
+import com.farmdirect.dao.ProductDAO;import com.farmdirect.model.*;import javax.servlet.*;import javax.servlet.annotation.WebServlet;import javax.servlet.http.*;import java.io.IOException;
+@WebServlet("/farmer") public class FarmerServlet extends HttpServlet{
+ private User user(HttpServletRequest q){return (User)q.getSession().getAttribute("user");}
+ protected void doGet(HttpServletRequest q,HttpServletResponse p)throws ServletException,IOException{User u=user(q);if(u==null||!"FARMER".equals(u.getRole())){p.sendRedirect("login.jsp");return;}try{q.setAttribute("products",new ProductDAO().byFarmer(u.getId()));q.getRequestDispatcher("farmer.jsp").forward(q,p);}catch(Exception e){throw new ServletException(e);}}
+ protected void doPost(HttpServletRequest q,HttpServletResponse p)throws ServletException,IOException{User u=user(q);if(u==null||!"FARMER".equals(u.getRole())){p.sendRedirect("login.jsp");return;}try{String action=q.getParameter("action");ProductDAO d=new ProductDAO();int id=Integer.parseInt(q.getParameter("id")==null?"0":q.getParameter("id"));if("delete".equals(action))d.delete(id,u.getId());else d.save(id,u.getId(),q.getParameter("name"),q.getParameter("category"),Double.parseDouble(q.getParameter("price")),Integer.parseInt(q.getParameter("stock")),q.getParameter("description"));p.sendRedirect("farmer");}catch(Exception e){q.setAttribute("error","Please check product details and try again.");doGet(q,p);}}
+}

@@ -1,0 +1,17 @@
+package com.farmdirect.dao;
+import com.farmdirect.util.DB; import java.sql.*; import java.util.*;
+public class OrderDAO {
+ public void place(int customerId,Map<Integer,Integer> cart)throws Exception{
+  if(cart==null||cart.isEmpty())throw new Exception("Your cart is empty.");
+  try(Connection c=DB.getConnection()){c.setAutoCommit(false);try{
+   double total=0; Map<Integer,Double> prices=new HashMap<>();
+   for(Map.Entry<Integer,Integer> e:cart.entrySet()){try(PreparedStatement p=c.prepareStatement("SELECT price,stock FROM products WHERE id=? AND available=1 FOR UPDATE")){p.setInt(1,e.getKey());try(ResultSet r=p.executeQuery()){if(!r.next()||r.getInt("stock")<e.getValue())throw new Exception("A product is unavailable or has insufficient stock.");double price=r.getDouble("price");prices.put(e.getKey(),price);total+=price*e.getValue();}}}
+   int orderId;try(PreparedStatement p=c.prepareStatement("INSERT INTO orders(customer_id,total_amount,status) VALUES(?,?,'PLACED')",Statement.RETURN_GENERATED_KEYS)){p.setInt(1,customerId);p.setDouble(2,total);p.executeUpdate();try(ResultSet r=p.getGeneratedKeys()){r.next();orderId=r.getInt(1);}}
+   for(Map.Entry<Integer,Integer> e:cart.entrySet()){try(PreparedStatement p=c.prepareStatement("INSERT INTO order_items(order_id,product_id,quantity,unit_price) VALUES(?,?,?,?)")){p.setInt(1,orderId);p.setInt(2,e.getKey());p.setInt(3,e.getValue());p.setDouble(4,prices.get(e.getKey()));p.executeUpdate();}try(PreparedStatement p=c.prepareStatement("UPDATE products SET stock=stock-? WHERE id=?")){p.setInt(1,e.getValue());p.setInt(2,e.getKey());p.executeUpdate();}}
+   c.commit();
+  }catch(Exception ex){c.rollback();throw ex;}finally{c.setAutoCommit(true);}}
+ }
+ public List<Map<String,Object>> forCustomer(int id)throws Exception{List<Map<String,Object>> a=new ArrayList<>();String q="SELECT id,total_amount,status,created_at FROM orders WHERE customer_id=? ORDER BY id DESC";try(Connection c=DB.getConnection();PreparedStatement p=c.prepareStatement(q)){p.setInt(1,id);try(ResultSet r=p.executeQuery()){while(r.next()){Map<String,Object> m=new HashMap<>();m.put("id",r.getInt("id"));m.put("total",r.getDouble("total_amount"));m.put("status",r.getString("status"));m.put("date",r.getTimestamp("created_at"));a.add(m);}}}return a;}
+ public List<Map<String,Object>> all()throws Exception{List<Map<String,Object>> a=new ArrayList<>();String q="SELECT o.id,o.total_amount,o.status,o.created_at,u.name customer FROM orders o JOIN users u ON o.customer_id=u.id ORDER BY o.id DESC";try(Connection c=DB.getConnection();Statement p=c.createStatement();ResultSet r=p.executeQuery(q)){while(r.next()){Map<String,Object> m=new HashMap<>();m.put("id",r.getInt("id"));m.put("total",r.getDouble("total_amount"));m.put("status",r.getString("status"));m.put("date",r.getTimestamp("created_at"));m.put("customer",r.getString("customer"));a.add(m);}}return a;}
+ public void status(int id,String status)throws Exception{if(!Arrays.asList("PLACED","ACCEPTED","PACKED","COMPLETED","CANCELLED").contains(status))throw new Exception("Invalid status");try(Connection c=DB.getConnection();PreparedStatement p=c.prepareStatement("UPDATE orders SET status=? WHERE id=?")){p.setString(1,status);p.setInt(2,id);p.executeUpdate();}}
+}

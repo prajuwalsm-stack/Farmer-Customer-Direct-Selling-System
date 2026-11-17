@@ -1,0 +1,5 @@
+package com.farmdirect.controller;
+import com.farmdirect.dao.UserDAO; import javax.servlet.*;import javax.servlet.annotation.WebServlet;import javax.servlet.http.*;import java.io.IOException;
+@WebServlet("/register") public class RegisterServlet extends HttpServlet{
+ protected void doPost(HttpServletRequest q,HttpServletResponse p)throws ServletException,IOException{String role=q.getParameter("role");if(!"FARMER".equals(role)&&!"CUSTOMER".equals(role))role="CUSTOMER";try{new UserDAO().register(q.getParameter("name"),q.getParameter("email"),q.getParameter("phone"),q.getParameter("address"),q.getParameter("password"),role);p.sendRedirect("login.jsp?registered=1");}catch(Exception e){q.setAttribute("error","Registration failed. Email may already be registered.");q.getRequestDispatcher("register.jsp").forward(q,p);}}
+}

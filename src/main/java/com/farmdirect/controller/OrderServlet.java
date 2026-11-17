@@ -1,0 +1,3 @@
+package com.farmdirect.controller;
+import com.farmdirect.dao.OrderDAO;import com.farmdirect.model.User;import javax.servlet.*;import javax.servlet.annotation.WebServlet;import javax.servlet.http.*;import java.io.IOException;
+@WebServlet("/orders") public class OrderServlet extends HttpServlet{protected void doGet(HttpServletRequest q,HttpServletResponse p)throws ServletException,IOException{User u=(User)q.getSession().getAttribute("user");if(u==null){p.sendRedirect("login.jsp");return;}try{q.setAttribute("orders",new OrderDAO().forCustomer(u.getId()));q.getRequestDispatcher("orders.jsp").forward(q,p);}catch(Exception e){throw new ServletException(e);}}}

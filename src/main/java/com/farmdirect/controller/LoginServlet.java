@@ -1,0 +1,5 @@
+package com.farmdirect.controller;
+import com.farmdirect.dao.UserDAO;import com.farmdirect.model.User;import javax.servlet.*;import javax.servlet.annotation.WebServlet;import javax.servlet.http.*;import java.io.IOException;
+@WebServlet("/login") public class LoginServlet extends HttpServlet{
+ protected void doPost(HttpServletRequest q,HttpServletResponse p)throws ServletException,IOException{try{User u=new UserDAO().login(q.getParameter("email"),q.getParameter("password"));if(u==null){q.setAttribute("error","Invalid email or password.");q.getRequestDispatcher("login.jsp").forward(q,p);return;}q.getSession().setAttribute("user",u);if("ADMIN".equals(u.getRole()))p.sendRedirect("admin");else if("FARMER".equals(u.getRole()))p.sendRedirect("farmer");else p.sendRedirect("products");}catch(Exception e){throw new ServletException(e);}}
+}

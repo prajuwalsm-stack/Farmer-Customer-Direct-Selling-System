@@ -1,0 +1,6 @@
+<%@ page contentType="text/html;charset=UTF-8" %><%@ page import="com.farmdirect.model.User" %>
+<% User u=(User)session.getAttribute("user"); %>
+<!DOCTYPE html><html><head><title>FarmDirect</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<header><a class="brand" href="index.jsp">🌱 FarmDirect</a><nav><a href="products">Shop Products</a><%if(u==null){%><a href="login.jsp">Login</a><a href="register.jsp">Register</a><%}else{%><a href="orders">My Orders</a><a href="logout">Logout</a><%}%></nav></header>
+<section class="hero"><h1>Fresh from farms, directly to you.</h1><p>Connect with local farmers. Buy fresh vegetables, fruits, grains and more without unnecessary middlemen.</p><a class="btn" href="products">Explore Products</a> <a class="btn secondary" href="register.jsp">Join FarmDirect</a></section>
+<div class="container grid"><div class="card"><h3>👩‍🌾 For Farmers</h3><p>List your harvest, manage stock and receive customer orders.</p></div><div class="card"><h3>🛒 For Customers</h3><p>Discover farm-fresh products and place orders easily.</p></div><div class="card"><h3>🌿 Direct Connection</h3><p>A simple marketplace that brings farmers and customers together.</p></div></div><footer>Farmer–Customer Direct Selling System | Academic Project</footer></body></html>
